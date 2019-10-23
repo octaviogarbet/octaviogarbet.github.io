@@ -11,11 +11,20 @@ defaults:
       path: ""
       type: "posts"
     values:
-      layout: "post"
+      layout: "post_minima"
   - scope:
       path: ""
     values:
-      layout: "default"
+      layout: "default_minima"
+title: octaviogarbet.github.io
+author: Oti
+email: your-email@example.com
+description: >- # this means to ignore newlines until "baseurl:"
+  This is Octavio Garbarino personal website, in which there is his resume some usefull information. Octavio is a Software Developer and meetup speaker. Keep in touch!
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://octaviogarbet.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+twitter_username: octaviogarbet
+github_username:  octaviogarbet
 plugins:
   - jekyll-feed
   - jekyll-sitemap
