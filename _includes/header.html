@@ -3,7 +3,15 @@
   <div class="wrapper">
     {%- assign default_paths = site.pages | map: "path" -%}
     {%- assign page_paths = site.header_pages | default: default_paths -%}
-    <a class="site-title" rel="author" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+    <div class="profile">
+      <div class="avatar">
+        <img src="https://oti.noroofdevelopment.com/favicon.ico" alt="Profile photo">
+      </div>
+      <div class="heading">
+        <h1>{{ site.title | escape }}</h1>
+        <h2>{{ site.subtitle | escape }}</h2>
+      </div>
+    </div>
 
     {%- if page_paths -%}
       <nav class="site-nav">
@@ -17,12 +25,12 @@
         </label>
 
         <div class="trigger">
-          {%- for path in page_paths -%}
-            {%- assign my_page = site.pages | where: "path", path | first -%}
-            {%- if my_page.title -%}
-            <a class="page-link" href="{{ my_page.url | relative_url }}">{{ my_page.title | escape }}</a>
+          {% for item in site.data.navigation %}
+            {%- assign my_page = item -%}
+            {%- if my_page.name -%}
+            <a class="page-link" {% if page.url == my_page.link %}class="current"{% endif %} href="{{ my_page.link | relative_url }}">{{ my_page.name | escape }}</a>
             {%- endif -%}
-          {%- endfor -%}
+          {% endfor %}
         </div>
       </nav>
     {%- endif -%}
