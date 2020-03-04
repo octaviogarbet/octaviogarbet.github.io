@@ -1,5 +1,7 @@
 ---
-title: About
+layout: wrapper
+title: Octavio Garbarino
+subtitle: About
 ---
 # About page
 

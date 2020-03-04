@@ -1,3 +1,5 @@
+@charset "utf-8";
+
 :root {
   --color-primary: #ff8A5B;
   --color-primary-light: #ffAA7B;
@@ -12,61 +14,57 @@
   --color-active: blue;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-}
-
 html {
   height: 100%;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  background-color: var(--color-background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  align-items: center;
-  min-height: 100vh;
-  color: var(--color-secondary);
-  position: relative;
-}
+// Define defaults for each variable.
 
-main {
-  min-height: calc(100vh - 100px);
-}
+$base-font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+$base-font-size:   16px !default;
+$base-font-weight: 400 !default;
+$small-font-size:  $base-font-size * 0.875 !default;
+$base-line-height: 1.5 !default;
 
-header {
-  min-height: 50px;
-  display: flex;
-  justify-content: space-around;
-  background-color: var(--color-header);
-  align-items: center;
-}
+$spacing-unit:     30px !default;
 
-.heading {
-  flex-grow: 0.5;
-  h1 {
-    color: var(--color-secondary);
+$text-color:       #111 !default;
+$background-color: #fdfdfd !default;
+$brand-color:      #2a7ae2 !default;
+
+$grey-color:       #828282 !default;
+$grey-color-light: lighten($grey-color, 40%) !default;
+$grey-color-dark:  darken($grey-color, 25%) !default;
+
+$table-text-align: left !default;
+
+// Width of the content area
+$content-width:    900px !default;
+
+$on-palm:          600px !default;
+$on-laptop:        900px !default;
+
+// Use media queries like this:
+// @include media-query($on-palm) {
+//   .wrapper {
+//     padding-right: $spacing-unit / 2;
+//     padding-left: $spacing-unit / 2;
+//   }
+// }
+@mixin media-query($device) {
+  @media screen and (max-width: $device) {
+    @content;
   }
 }
 
-footer {
-  min-height: 50px;
-  text-align: right;
-  padding-right: 2rem;
-  padding-bottom: 1rem;
+@mixin relative-font-size($ratio) {
+  font-size: $base-font-size * $ratio;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
-}
-
-.current {
-  color: green;
-}
+// Import partials.
+@import
+  "oti/base",
+  "oti/layout",
+  "minima/syntax-highlighting"
+;
