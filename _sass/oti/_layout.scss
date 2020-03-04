@@ -1,8 +1,8 @@
 /**
  * Site header
  */
-header {
-  border-top: 5px solid $grey-color-dark;
+header.site-header {
+  // border-top: 5px solid $grey-color-dark;
   border-bottom: 1px solid $grey-color-light;
   min-height: 4rem;
   // Positioning context for the mobile navigation icon
@@ -38,6 +38,7 @@ header {
           font-size: 20px;
           margin-bottom: 0;
           line-height: 1;
+          margin-top: 0.1rem;
         }
       }
     }
@@ -211,7 +212,6 @@ header {
  * Page content
  */
 .page-content {
-  padding: $spacing-unit 0;
   flex: 1;
 }
 
@@ -242,7 +242,28 @@ header {
   @include relative-font-size(1.5);
 }
 
-
+section {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+  .cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    article {
+      background-color: white;
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+      padding: 1rem;
+      margin-top: 1rem;
+      width: 42%;
+      margin-right: 4%;
+    }
+  }
+  &.meetups {
+    background-color: rgb(201, 201, 196);    
+  }
+  &.introduction {
+    background-color: aquamarine;
+  }
+}
 
 /**
  * Posts
