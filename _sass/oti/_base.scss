@@ -53,6 +53,20 @@ main {
 
 footer {
   min-height: 50px;
+  background-color: #424242;
+  color: white;
+  a {
+    color: white;
+
+    &:visited {
+      color: darken(white, 15%);
+    }
+  
+    &:hover {
+      color: $grey-color-light;
+      text-decoration: underline;
+    }
+  }
 }
 
 

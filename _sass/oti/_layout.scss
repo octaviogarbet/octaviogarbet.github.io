@@ -3,7 +3,7 @@
  */
 header.site-header {
   // border-top: 5px solid $grey-color-dark;
-  border-bottom: 1px solid $grey-color-light;
+  border-bottom: 1px solid var(--color-header);
   min-height: 4rem;
   // Positioning context for the mobile navigation icon
   position: fixed;
@@ -158,7 +158,6 @@ header.site-header {
 
 .footer-col-wrapper {
   @include relative-font-size(0.9375);
-  color: $grey-color;
   //max-width: 980px;
   margin-left: auto;
   margin-right: auto;
@@ -246,22 +245,29 @@ section {
   padding-top: 1rem;
   padding-bottom: 2rem;
   .cards-container {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-column-gap: 2rem;
+    grid-row-gap: 2rem;
+    
     article {
       background-color: white;
       box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
       padding: 1rem;
-      margin-top: 1rem;
-      width: 42%;
-      margin-right: 4%;
+      h4 {
+        font-weight: 500;
+      }
+    }
+
+    @include media-query($on-palm) {
+      grid-template-columns: 1fr;
     }
   }
   &.meetups {
-    background-color: rgb(201, 201, 196);    
+    background-color: #E3F2FD;
   }
   &.introduction {
-    background-color: aquamarine;
+    background-color: var(--color-header);
   }
 }
 
