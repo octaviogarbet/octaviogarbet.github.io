@@ -9,6 +9,7 @@ header.site-header {
   position: fixed;
   width: 100%;  
   background-color: var(--color-header);
+  z-index: 1;
   .wrapper {
     display: flex;
     // justify-content: space-around;
@@ -251,11 +252,20 @@ section {
     grid-row-gap: 2rem;
     
     article {
+      box-sizing: border-box;
       background-color: white;
-      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+      box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 1px -2px, rgba(0, 0, 0, 0.14) 0px 2px 2px 0px, rgba(0, 0, 0, 0.12) 0px 1px 5px 0px;
       padding: 1rem;
+      color: #737373;
+      border-radius: 4px;
+      position: relative;
       h4 {
         font-weight: 500;
+      }
+      span.period {
+        position: absolute;
+        bottom: 5px;
+        right: 10px;
       }
     }
 
