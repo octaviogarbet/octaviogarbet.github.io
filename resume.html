@@ -15,24 +15,11 @@ layout: default_minima
     <h2>Skills</h2>
     <p>Proved experience in different languages and frameworks, and being part in several stages of the whole process of the software development.</p>
     <div class="cards-container">
-      <article>
-        <h4>Front-end</h4>
-        <p>Web development using trending technologies to build Single Page Applications and Progressive Web Apps.</p>
-        <p>Embracing bests practices like Atomic Design and Single Source of Truth.</p>
-        <p>Having special attention to performance, user experience and security.</p>
-      </article>
-      <article>
-        <h4>Back-end</h4>
-        <p>Develop and design scalable server-side applications, most of them API Rest secured with oauth 2 or JWT.</p>
-        <p>Model design using relational and non-relational databases.</p>
-        <p>Adopting new technologies and architectures like microservices, GraphQL and serverless.</p>
-      </article>
-      <article>
-        <h4>Tech Stack</h4>
-        <p>For backend: Grails, Nodejs, Nestjs, Java, Javascript and Typescript.</p>
-        <p>For Frontend: Angular, React, Ionic, Jekyll, CSS, HTML, Bootstrap.</p>
-        <p>At Database level: SQL (Several DBM), MongoDB, Redis.</p>
-      </article>
+      {% for skill in site.skills %}
+        <article>
+          {{ skill.content | markdownify }}
+        </article>
+      {% endfor %}
     </div>
   </div>
 </section>
@@ -42,26 +29,12 @@ layout: default_minima
     <h2>Experience</h2>
     <p>Most relevant jobs I have got as a professional software developer.</p>
     <div class="cards-container">
-      <article>
-        <h4>Software Developer: Endava</h4>
-        <p>Team player Software Developer using agile methodologies and being frontend technical lead.</p>
-        <p>Member and leader of IoT and Javascript communities where investigation and learning tasks are done in order to develop new and better services in the company.</p>
-        <span class="period"><i>2 years</i></span>
-      </article>
-
-      <article>
-        <h4>Professor: ORT University</h4>
-        <p>Technology professor of Applications Design, giving practical lessons about Angular, dotnet core, Rest API and Client-Server architecture.</p>
-        <span class="period"><i>6 months</i></span>
-      </article>
-
-      <article>
-        <h4>Fullstack Developer: Magenta Innova</h4>
-        <p>Team player as Full Stack Software Developer working for different projects.</p>
-        <p>Last year being technical specialist and reference in both backend and frontend development.</p>
-        <p>We used Agile methodologies, mostly SCRUM, and frequently I played the role of scrum master.</p>
-        <span class="period"><i>4 years</i></span>
-      </article>
+      {% for experience in site.experience %}
+        <article>
+          {{ experience.content | markdownify }}
+          <span class="period"><i>{{ experience.period }}</i></span>
+        </article>
+      {% endfor %}
     </div>
   </div>
 </section>
