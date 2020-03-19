@@ -13,26 +13,11 @@ subtitle: Software Developer
     <h3>Meetups and events</h3>
     <p>I give different talks in meetups and events. I really enjoy this because sharing the knowledge we have, is the best way to keep growing as a software developer's community. Some of the talks that I have presented are the followings:</p>
     <div class="cards-container">
-      <article>
-        <h4>Angular to React: Lessons learned in the road</h4>
-        <p>After working several years using Angular, I started learning React and made a couple of small projects. In the road I learned some lessons, and some similarities and differences that we share in this talk.</p>
-      </article>
-      <article>
-        <h4>Alphabetical (Game)</h4>
-        <p>We can't live only by programming, so we played Alphabetical! After developing the <a href="https://oti.noroofdevelopment.com/wheelgames-control/" target="blank">Web App</a> for the game, with some help I prepared sets of technical and non technical questions for 2 teams and make them play Alphabetical (yes, like in the TV Show). </p>
-      </article>
-      <article>
-        <h4>Docker for devs 101</h4>
-        <p>An introduction of Docker basics concepts, how we can use it for development environments and some benefits of it.</p>
-      </article>
-      <article>
-        <h4>UX 101: Don't make them think</h4>
-        <p>UX basics concepts are useful for most developers, so we share some basic concepts and see how familiar some of them can me! (Most topics based on the book Don't make me think by Steve Krug)</p>
-      </article>
-      <article>
-        <h4>Web to mobile developer</h4>
-        <p>As web developers (specially if you are a frontend developer) we have several paths to become a mobile developer. In this talk we discuss some of them and explain basics topics of Ionic which is a great option for an Hybrid application.</p>
-      </article>
+      {% for talk in site.talks %}
+        <article>
+          {{ talk.content | markdownify }}
+        </article>
+      {% endfor %}
     </div>
   </div>
 </section>

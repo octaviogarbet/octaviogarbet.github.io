@@ -1,6 +1,9 @@
 collections:
   authors:
     output: true
+  talks:
+  skills:
+  experience:
 defaults:
   - scope:
       path: ""
