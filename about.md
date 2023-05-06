@@ -5,11 +5,11 @@ subtitle: About
 ---
 # About me
 
-Hi! My name is Octavio, I am 31 years old and I live in Uruguay. I fall in love with technology at primary school and from there I am always learning about technology. I truly believe that Information Technology can contribute to build a better world and I will be having in mind how can I help others with technology.
+Hi! My name is Octavio, I am 34 years old and I live in Uruguay. I fall in love with technology at primary school and from there I am always learning about technology. I truly believe that Information Technology can contribute to build a better world and I will be having in mind how can I help others with technology.
 
 ## Profession
 
-Software developer with more than 6 years of professional experience as a team player using agile methodologies. Developing mainly web applications with different technologies for both backend and frontend, being part of the developing process, as well as of the analysis and design process. Eager to be constantly up to date with the new technologies and work methodologies in order to offer better solutions and to improve the work's atmosphere and productivity.
+Software developer with more than 9 years of professional experience as a team player using agile methodologies. Developing mainly web applications with different technologies for both backend and frontend, being part of the developing process, as well as of the analysis and design process. Eager to be constantly up to date with the new technologies and work methodologies in order to offer better solutions and to improve the work's atmosphere and productivity.
 
 ## Education
 
