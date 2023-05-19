@@ -27,6 +27,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   This is Octavio Garbarino personal website, in which there is his resume some useful information. Octavio is a Software Developer, Technical Lead, Engineering Manager and meetup speaker. Keep in touch!
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://oti.noroof.dev/" # the base hostname & protocol for your site, e.g. http://example.com
+linkedin_username: octavio-garbarino-betervide
 twitter_username: octaviogarbet
 github_username:  octaviogarbet
 plugins:
