@@ -1,0 +1,63 @@
+---
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Section from '../components/Section.astro';
+import { getOrdered, getPublished, formatDate } from '../lib/content';
+import { SITE } from '../site';
+
+const talks = await Promise.all(
+  (await getOrdered('talks')).map(async (talk) => ({ talk, ...(await render(talk)) })),
+);
+const posts = (await getPublished('blog')).slice(0, 3);
+---
+
+<Base>
+  <section class="mb-20">
+    <p class="text-sm uppercase tracking-widest text-accent mb-4">Engineering Manager · Tech Lead</p>
+    <h1 class="font-serif text-4xl sm:text-6xl font-medium tracking-tight leading-[1.05]">
+      Focused on the web, with solid experience in both front-end and back-end.
+    </h1>
+    <p class="mt-8 text-lg text-muted leading-relaxed max-w-2xl">
+      Alongside my current job, I work as a consultant and I'm always open to helping with your next product or
+      building the solution to your main problem. If you need guidance on software, the web or IT solutions, I'll be
+      glad to help.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3 text-sm">
+      <a href="/services" class="px-4 py-2 rounded-full bg-fg text-bg hover:opacity-85 transition-opacity">Work with me</a>
+      <a href="/resume" class="px-4 py-2 rounded-full border border-line hover:border-fg transition-colors">Read my resume</a>
+      <a href={`mailto:${SITE.email}`} class="px-4 py-2 rounded-full border border-line hover:border-fg transition-colors">Email me</a>
+    </div>
+  </section>
+
+  {posts.length > 0 && (
+    <Section title="Latest writing">
+      <ul class="divide-y divide-line border-y border-line">
+        {posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}`} class="group flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 py-4">
+              <span class="group-hover:text-accent transition-colors">{post.data.title}</span>
+              <time datetime={post.data.date.toISOString()} class="text-sm text-muted shrink-0">{formatDate(post.data.date)}</time>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  )}
+
+  <Section
+    title="Talks & events"
+    intro="I give talks at meetups and events. Sharing what we know is the best way to keep growing as a software developer community."
+  >
+    <ol class="space-y-8">
+      {talks.map(({ talk, Content }) => (
+        <li class="grid sm:grid-cols-[2.5rem_1fr] gap-x-4">
+          <span class="hidden sm:block font-serif text-muted tabular-nums pt-0.5">{String(talk.data.order).padStart(2, '0')}</span>
+          <div>
+            <h3 class="font-medium">{talk.data.title}</h3>
+            <div class="prose prose-sm max-w-none mt-1 text-muted [--tw-prose-body:var(--muted)]"><Content /></div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </Section>
+</Base>

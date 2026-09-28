@@ -1,0 +1,34 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Empty from '../../components/Empty.astro';
+import { getPublished } from '../../lib/content';
+
+const projects = await getPublished('portfolio');
+---
+
+<Base title="Portfolio" description="Selected projects and case studies by Octavio Garbarino.">
+  <PageHeader eyebrow="Portfolio" title="Selected work" lead="Projects I've led or built, and what came out of them." />
+  {projects.length === 0 ? (
+    <Empty>Case studies coming soon.</Empty>
+  ) : (
+    <ul class="grid gap-5">
+      {projects.map((project) => (
+        <li>
+          <a href={`/portfolio/${project.id}`} class="group block p-6 rounded-lg border border-line hover:border-fg transition-colors">
+            <div class="flex items-baseline justify-between gap-4">
+              <h2 class="font-serif text-xl font-medium group-hover:text-accent transition-colors">{project.data.title}</h2>
+              {project.data.draft && <span class="text-xs uppercase tracking-wider text-accent">Draft</span>}
+            </div>
+            <p class="mt-2 text-muted leading-relaxed">{project.data.summary}</p>
+            {project.data.stack.length > 0 && (
+              <ul class="mt-4 flex flex-wrap gap-2 text-xs text-muted">
+                {project.data.stack.map((tech) => <li class="px-2 py-0.5 rounded-full bg-surface">{tech}</li>)}
+              </ul>
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>

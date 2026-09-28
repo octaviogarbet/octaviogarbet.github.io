@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import { SITE } from '../site';
+
+// TODO: placeholder offering based on the resume. Adjust names, descriptions and add pricing if you want.
+const services = [
+  {
+    title: 'Engineering leadership advisory',
+    description:
+      'Support for founders and managers: team structure, hiring loops, career frameworks, 1:1s and feedback practices, and healthy delivery processes.',
+  },
+  {
+    title: 'Front-end architecture & web consulting',
+    description:
+      'Architecture reviews, performance and UX audits, migrations (e.g. Angular to React) and technical direction for web products.',
+  },
+  {
+    title: 'Mentoring & coaching',
+    description: 'One-on-one mentoring for engineers stepping into tech lead or engineering manager roles.',
+  },
+  {
+    title: 'Talks & workshops',
+    description:
+      'Talks and workshops for teams and events on soft skills, leadership, JavaScript fundamentals, UX basics and the Business Model Canvas.',
+  },
+];
+
+const steps = [
+  { title: 'Intro call', description: 'A short call to understand your context and what you need.' },
+  { title: 'Proposal', description: 'A clear scope, timeline and price.' },
+  { title: 'Work together', description: 'Regular check-ins and concrete deliverables.' },
+];
+---
+
+<Base title="Services" description="Consulting, engineering leadership advisory, mentoring and talks by Octavio Garbarino.">
+  <PageHeader
+    eyebrow="Services"
+    title="Let's build something good, and a team that keeps building it."
+    lead="I help companies and engineers with web products, technical direction and engineering leadership."
+  />
+
+  <Section title="What I can help with">
+    <ul class="grid sm:grid-cols-2 gap-5">
+      {services.map((service) => (
+        <li class="p-6 rounded-lg bg-surface">
+          <h3 class="font-medium">{service.title}</h3>
+          <p class="mt-2 text-sm text-muted leading-relaxed">{service.description}</p>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section title="How it works">
+    <ol class="grid sm:grid-cols-3 gap-6">
+      {steps.map((step, i) => (
+        <li>
+          <span class="font-serif text-3xl text-accent">{i + 1}</span>
+          <h3 class="mt-2 font-medium">{step.title}</h3>
+          <p class="mt-1 text-sm text-muted leading-relaxed">{step.description}</p>
+        </li>
+      ))}
+    </ol>
+  </Section>
+
+  <Section id="contact" title="Get in touch" intro="Tell me a bit about your project or team. I usually reply within a couple of days.">
+    {SITE.formspreeId ? (
+      <form action={`https://formspree.io/f/${SITE.formspreeId}`} method="POST" class="grid gap-4 max-w-xl">
+        <label class="grid gap-1.5 text-sm">
+          Name
+          <input name="name" required autocomplete="name" class="px-3 py-2 rounded-md bg-surface border border-line focus:border-accent outline-none" />
+        </label>
+        <label class="grid gap-1.5 text-sm">
+          Email
+          <input name="email" type="email" required autocomplete="email" class="px-3 py-2 rounded-md bg-surface border border-line focus:border-accent outline-none" />
+        </label>
+        <label class="grid gap-1.5 text-sm">
+          Message
+          <textarea name="message" rows="5" required class="px-3 py-2 rounded-md bg-surface border border-line focus:border-accent outline-none" />
+        </label>
+        <button type="submit" class="justify-self-start px-5 py-2 rounded-full bg-fg text-bg text-sm hover:opacity-85 transition-opacity">Send message</button>
+      </form>
+    ) : (
+      <a href={`mailto:${SITE.email}`} class="inline-block px-5 py-2 rounded-full bg-fg text-bg text-sm hover:opacity-85 transition-opacity">{SITE.email}</a>
+    )}
+    {SITE.bookingUrl && (
+      <p class="mt-6 text-sm text-muted">
+        Prefer talking? <a href={SITE.bookingUrl} target="_blank" rel="noopener noreferrer" class="text-fg underline decoration-accent underline-offset-4">Book a call</a>.
+      </p>
+    )}
+  </Section>
+</Base>

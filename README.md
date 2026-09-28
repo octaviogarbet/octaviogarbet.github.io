@@ -1,12 +1,33 @@
-# Personal website 
-Welcome to the source code of my personal website! This project has two main objetives, the first one is to learn how yo use Jekyll, and the second one is to build my personal website in order to have an online resume and some updates!
+# oti.noroof.dev
 
-## Learning Jekyll 
-Jekyll is one of the most popular technologies used to generate static web sites and also can be deployed in GitHub pages. 
+Personal site of Octavio Garbarino: resume, portfolio, blog and services. Built with [Astro](https://astro.build) and Tailwind CSS, deployed to GitHub Pages.
 
-## Personal website
-The personal site will have the followin sections:
-- Personal information
-- Resume
-- Updates and news
-- Blog
+## Development
+
+```sh
+npm install
+npm run dev      # http://localhost:4321 (drafts are visible here)
+npm run build    # static output in dist/
+npm run check    # type-check .astro and .ts files
+```
+
+## Content
+
+All content is Markdown in `src/content/`, validated by the schemas in `src/content.config.ts`.
+
+| Folder        | Used on             | Frontmatter                                                           |
+| ------------- | ------------------- | --------------------------------------------------------------------- |
+| `experience/` | `/resume`           | `role`, `company`, `period`, `order`                                  |
+| `skills/`     | `/resume`           | `title`, `order`                                                      |
+| `talks/`      | `/` (home)          | `title`, `order`                                                      |
+| `blog/`       | `/blog`, RSS        | `title`, `description`, `date`, `tags?`, `draft?`                     |
+| `portfolio/`  | `/portfolio`        | `title`, `summary`, `date`, `role?`, `stack?`, `url?`, `repo?`, `draft?` |
+| `about.md`    | `/about`            | none                                                                   |
+
+Entries with `draft: true` only appear in `npm run dev`.
+
+Site-wide settings (email, social links, nav, Formspree id, booking link) live in `src/site.ts`. The services copy is in `src/pages/services.astro`.
+
+## Deploy
+
+Pushing to `master` runs `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages. The custom domain comes from `public/CNAME`.

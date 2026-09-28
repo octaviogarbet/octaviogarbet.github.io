@@ -1,0 +1,28 @@
+export const SITE = {
+  name: 'Octavio Garbarino',
+  title: 'Octavio Garbarino, Engineering Manager',
+  description:
+    'Engineering Manager and Tech Lead from Uruguay with 10+ years building web products, leading teams and speaking at meetups and conferences.',
+  url: 'https://oti.noroof.dev',
+  email: 'octavio.garbarino@noroof.dev',
+  // Set to a Formspree form id (e.g. "xyzabcd") to enable the contact form on /services.
+  // While empty, the page falls back to an email link.
+  formspreeId: '',
+  // Optional booking link (e.g. a Cal.com event). Hidden while empty.
+  bookingUrl: '',
+};
+
+export const NAV = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/resume', label: 'Resume' },
+  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/services', label: 'Services' },
+];
+
+export const SOCIAL = [
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/octavio-garbarino-betervide' },
+  { label: 'GitHub', href: 'https://github.com/octaviogarbet' },
+  { label: 'X / Twitter', href: 'https://twitter.com/octaviogarbet' },
+];
