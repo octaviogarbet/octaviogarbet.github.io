@@ -1,3 +1,5 @@
+import { FEATURE_BLOG, FEATURE_SERVICES } from 'astro:env/server';
+
 export const SITE = {
   name: 'Octavio Garbarino',
   title: 'Octavio Garbarino, Engineering Manager',
@@ -16,9 +18,9 @@ export const NAV = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/resume', label: 'Resume' },
-  { href: '/portfolio', label: 'Portfolio' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/services', label: 'Services' },
+  { href: '/case-studies', label: 'Case studies' },
+  ...(FEATURE_BLOG ? [{ href: '/blog', label: 'Blog' }] : []),
+  ...(FEATURE_SERVICES ? [{ href: '/services', label: 'Services' }] : []),
 ];
 
 export const SOCIAL = [

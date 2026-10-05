@@ -2,7 +2,10 @@
 role: "Fullstack Developer"
 company: "Magenta Innova"
 period: "4 years"
-order: 5
+start: 2014
+end: 2018
+order: 7
+lines: [architecture]
 ---
 
 Team player as Full Stack Software Developer working for different projects.

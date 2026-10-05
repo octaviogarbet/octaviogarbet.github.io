@@ -1,6 +1,7 @@
 ---
 title: "Docker for devs 101"
 order: 6
+lines: [architecture]
 ---
 
-An introduction of Docker basics concepts, how we can use it for development environments and some benefits of it.
+An introduction to Docker basics: how we can use it for development environments, and some of its benefits.

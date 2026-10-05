@@ -1,6 +1,6 @@
 ---
-title: "Lead / Managing"
-order: 4
+title: "Leadership & Management"
+order: 1
+lines: [leadership]
 ---
-
-Active feedback, attention to details, passion for technology, people-oriented person, motivation, empathy, strategic thinking,  delegation and empowerment.
+Department Leadership (30+ Devs), Career Paths, Performance Reviews, Hiring Pipelines, Remote Culture, Conflict Resolution.

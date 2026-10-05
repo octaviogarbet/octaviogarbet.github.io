@@ -1,6 +1,9 @@
 ---
 title: "UX 101: Don't make them think"
 order: 4
+venue: "Meetup organized by Endava"
+featured: true
+lines: [product]
 ---
 
-UX basics concepts are useful for most developers, so we share some basic concepts and see how familiar some of them can me! (Most topics based on the book Don't make me think by Steve Krug)
+UX basics are useful for most developers, so we went through some core concepts and saw how familiar many of them already are. (Most topics are based on Steve Krug's book *Don't Make Me Think*.)

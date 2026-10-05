@@ -1,0 +1,276 @@
+---
+import { render } from 'astro:content';
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import SignBand from '../../components/SignBand.astro';
+import RouteBullet from '../../components/RouteBullet.astro';
+import LineSelect from '../../components/LineSelect.astro';
+import LetsTalk from '../../components/LetsTalk.astro';
+import SystemMap from '../../components/SystemMap.astro';
+import { getCaseStudies, getOrdered, roleYears } from '../../lib/content';
+import { SITE } from '../../site';
+import { PLATE } from '../../lib/ui';
+
+type Line = 'leadership' | 'product' | 'architecture';
+
+export async function getStaticPaths() {
+  const studies = await getCaseStudies();
+  return studies.map((study, i) => ({ params: { id: study.id }, props: { study, next: studies[(i + 1) % studies.length] } }));
+}
+
+const { study, next } = Astro.props;
+const { title, summary, role, start, end, timeline, lines, stack, scope, url, repo, map, images } = study.data;
+const { headings } = await render(study);
+const pillars = await getOrdered('pillars');
+const bullets = pillars.filter((p) => lines.includes(p.id as Line)).map((p) => ({ line: p.id as Line, code: p.data.code, name: p.data.short }));
+const years = timeline ?? (start ? roleYears({ start, end, period: '' }) : undefined);
+
+// Story sections are the study's h2s; each map station points at the one that covers it.
+const patterns: Record<string, RegExp> = { context: /context/i, original: /original/i, ai: /ai evolution/i, outcomes: /outcome/i };
+const h2s = headings.filter((h) => h.depth === 2);
+const slugFor = (section: string) => h2s.find((h) => patterns[section]?.test(h.text))?.slug;
+const hrefs = Object.fromEntries((map?.stations ?? []).map((s) => [s.id, slugFor(s.section)]).filter(([, slug]) => slug));
+
+// Under each section heading, chips name the stations it covers.
+const chips = (slug: string) =>
+  (map?.stations ?? [])
+    .filter((s) => hrefs[s.id] === slug)
+    .map((s) => `<li><a href="#system-map" data-section="${slug}" aria-label="${s.label}, back to the system map">${s.label}</a></li>`)
+    .join('');
+let html = study.rendered?.html ?? '';
+for (const h of h2s) {
+  const list = chips(h.slug);
+  if (list) html = html.replace(new RegExp(`(<h2 id="${h.slug}">[\\s\\S]*?</h2>)`), `$1<ul class="station-chips" aria-label="On the map">${list}</ul>`);
+}
+// Screenshots sit between the original build and the AI evolution.
+const aiSlug = slugFor('ai');
+const splitAt = images.length && aiSlug ? html.indexOf(`<h2 id="${aiSlug}"`) : -1;
+const [before, after] = splitAt > 0 ? [html.slice(0, splitAt), html.slice(splitAt)] : [html, ''];
+// Each screenshot grows by its real aspect ratio, so a desktop and a mobile shot sit at the same height.
+const ratio = (img: { src: { width: number; height: number } }) => img.src.width / img.src.height;
+---
+
+<Base title={title.split(' — ')[0]} description={summary} bleed>
+  <LineSelect />
+  <SignBand name={SITE.name} home />
+
+  <article>
+    <header class="max-w-6xl mx-auto px-5 sm:px-6 pt-10 sm:pt-14">
+      <h1 class="font-sign text-[clamp(2.25rem,5vw,4rem)] font-extrabold leading-[0.98] tracking-[-0.03em] text-balance max-w-[22ch]">{title}</h1>
+      <p class="mt-5 text-lg sm:text-xl leading-relaxed text-muted max-w-[60ch]">{summary}</p>
+
+      <dl class="mt-8 grid sm:grid-cols-[auto_1fr] gap-x-8 gap-y-4 sm:gap-y-3 border-t border-line pt-6 text-base">
+        <dt class="font-sign font-bold -mb-3 sm:mb-0">Role</dt>
+        <dd class="text-muted">{role}</dd>
+        {years && (<><dt class="font-sign font-bold -mb-3 sm:mb-0">Years</dt><dd class="text-muted tabular-nums">{years}</dd></>)}
+        {bullets.length > 0 && (
+          <>
+            <dt class="font-sign font-bold -mb-3 sm:mb-0">Lines</dt>
+            <dd class="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {bullets.map((b) => (
+                <span class="inline-flex items-center gap-2 text-muted"><RouteBullet {...b} size="sm" />{b.name}</span>
+              ))}
+            </dd>
+          </>
+        )}
+        {stack.length > 0 && (<><dt class="font-sign font-bold -mb-3 sm:mb-0">Stack</dt><dd class="text-muted">{stack.join(' · ')}</dd></>)}
+        {scope.length > 0 && (<><dt class="font-sign font-bold -mb-3 sm:mb-0">Scope</dt><dd class="text-muted">{scope.join(' · ')}</dd></>)}
+      </dl>
+      {(url || repo) && (
+        <div class="mt-6 flex flex-wrap gap-3">
+          {url && <a href={url} target="_blank" rel="noopener noreferrer" class:list={[PLATE, 'bg-fg text-bg hover:bg-fg/80']}>Visit live site</a>}
+          {repo && <a href={repo} target="_blank" rel="noopener noreferrer" class:list={[PLATE, 'border-2 border-fg hover:bg-fg hover:text-bg']}>View code</a>}
+        </div>
+      )}
+    </header>
+
+    {map && (
+      <section id="system-map" aria-label="System map" class="max-w-6xl mx-auto px-5 sm:px-6 mt-12 sm:mt-14 scroll-mt-6">
+        <div class="pt-8 border-t-2 border-fg">
+          <SystemMap map={map} hrefs={hrefs} label={`System map of ${title.split(' — ')[0]}`} />
+          <p class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
+            <span class="inline-flex items-center gap-2"><span class="size-3.5 rounded-full border-[3px] border-fg" aria-hidden="true"></span>Component</span>
+            <span class="inline-flex items-center gap-2"><span class="size-[1.125rem] rounded-full border-[4px] border-fg" aria-hidden="true"></span>Interchange</span>
+            <span>Select a station to read about it.</span>
+          </p>
+        </div>
+      </section>
+    )}
+
+    <div class="story max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-16 lg:grid lg:grid-cols-[minmax(0,68ch)_minmax(0,1fr)] lg:gap-x-16">
+      <div class="min-w-0">
+      <div class="prose prose-lg max-w-[68ch]" set:html={before} />
+      {splitAt > 0 && (
+        <figure class="my-14 flex flex-col sm:flex-row items-start gap-4">
+          {images.map((img) => (
+            <div style={`--r: ${ratio(img)}`} class:list={['sm:[flex:var(--r)_1_0%] min-w-0', img.kind === 'mobile' && 'max-w-[60%] sm:max-w-none']}>
+              <Image
+                src={img.src}
+                alt={img.alt}
+                widths={img.kind === 'desktop' ? [800, 1600] : [400, 800]}
+                sizes={img.kind === 'desktop' ? '(min-width: 1152px) 760px, 90vw' : '(min-width: 1152px) 220px, 45vw'}
+                class="w-full h-auto rounded-[4px] border border-line"
+              />
+              {img.caption && <figcaption class="mt-2 text-sm text-muted">{img.caption}</figcaption>}
+            </div>
+          ))}
+        </figure>
+      )}
+      {after && <div class="prose prose-lg max-w-[68ch]" set:html={after} />}
+      </div>
+      {map && (
+        <aside class="hidden lg:block" aria-label="You are here">
+          <div class="here sticky top-8 pt-6 transition-opacity duration-300">
+            <p class="font-sign text-sm font-bold">You are here</p>
+            <a href="#system-map" class="mt-3 block" aria-label="Back to the full system map">
+              <SystemMap map={map} hrefs={hrefs} variant="compact" />
+            </a>
+            <ul class="here-list mt-3 space-y-1 text-sm">
+              {map.stations.map((st) => (
+                <li data-section={hrefs[st.id]} class="flex items-center gap-2 text-muted">
+                  <span class="size-2.5 rounded-full border-2 border-current" aria-hidden="true"></span>{st.label}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      )}
+    </div>
+
+    {next.id !== study.id && (
+      <nav aria-label="Next case study" class="border-t border-line">
+        <a href={`/case-studies/${next.id}`} aria-label={`Next case study: ${next.data.title.split(' — ')[0]}`} class="group block max-w-6xl mx-auto px-5 sm:px-6 py-10 sm:py-12">
+          <span class="flex items-center justify-between gap-6">
+            <span class="font-sign text-2xl sm:text-3xl font-extrabold tracking-[-0.02em] text-balance group-hover:underline decoration-[3px] underline-offset-[6px]">{next.data.title.split(' — ')[0]}</span>
+            <svg class="size-7 shrink-0 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M4 10h11M11 5l5 5-5 5" />
+            </svg>
+          </span>
+        </a>
+      </nav>
+    )}
+  </article>
+
+  <LetsTalk />
+</Base>
+
+<style>
+  /* Long-form story set in the site's type: signage headings, Inter body. */
+  .story :global(.prose :where(h2, h3, h4)) {
+    font-family: var(--font-sign);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 1.5rem;
+  }
+  .story :global(.prose h2) {
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--fg);
+  }
+  .story :global(.prose h2:target) {
+    border-top-width: 6px;
+  }
+  .story :global(.station-chips) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: -0.75rem 0 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+  .story :global(.station-chips li) {
+    margin: 0;
+    padding: 0;
+  }
+  .story :global(.station-chips a) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+    border: 2px solid var(--fg);
+    border-radius: 999px;
+    font-family: var(--font-sign);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--fg);
+    text-decoration: none;
+  }
+  .story :global(.station-chips a)::before {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+  }
+  .story :global(.prose :not(pre) > code::before),
+  .story :global(.prose :not(pre) > code::after) {
+    content: none;
+  }
+  .story :global(.prose :not(pre) > code) {
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--surface);
+    font-weight: 600;
+  }
+  .story :global(.prose pre) {
+    border: 1px solid var(--line);
+    border-radius: 4px;
+  }
+  /* The section being read lights its stations: on the map, the sticky map, the list and the chips. */
+  :global(.map-dot.is-current) {
+    fill: var(--fg);
+  }
+  .story :global(.here-list li.is-current) {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .story :global(.here-list li.is-current span),
+  .story :global(.station-chips a.is-current::before) {
+    background: currentColor;
+  }
+  /* The station you came from lights up on the map and in the story. */
+  :global(.map-station.is-current circle),
+  :global(.map-station.is-current .station-dot) {
+    fill: var(--fg);
+    background: var(--fg);
+  }
+  :global(.map-station:focus-visible) {
+    outline: 2px solid var(--fg);
+    outline-offset: 4px;
+  }
+</style>
+
+<script>
+  // The section being read (or just jumped to) lights every station it covers, everywhere they appear.
+  const lit = document.querySelectorAll<Element>('.map-station, .map-dot, .here-list li, .station-chips a');
+  const light = (slug: string | null) => {
+    for (const el of lit) el.classList.toggle('is-current', !!slug && (el as HTMLElement).dataset.section === slug);
+  };
+  const sections = [...document.querySelectorAll<HTMLElement>('.story .prose h2[id]')];
+  const current = () => {
+    let slug: string | null = null;
+    for (const h of sections) if (h.getBoundingClientRect().top < window.innerHeight * 0.35) slug = h.id;
+    return slug;
+  };
+  let queued = false;
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => ((queued = false), light(current())));
+    },
+    { passive: true },
+  );
+  window.addEventListener('hashchange', () => light(decodeURIComponent(location.hash.slice(1)) || current()));
+
+  // The compact map only appears once the full map has scrolled away, so the two never show together.
+  const here = document.querySelector<HTMLElement>('.here');
+  const fullMap = document.getElementById('system-map');
+  if (here && fullMap) {
+    new IntersectionObserver(([entry]) => {
+      here.style.opacity = entry.isIntersecting ? '0' : '1';
+      here.style.visibility = entry.isIntersecting ? 'hidden' : 'visible';
+    }).observe(fullMap);
+  }
+  light(decodeURIComponent(location.hash.slice(1)) || current());
+</script>

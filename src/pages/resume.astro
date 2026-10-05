@@ -1,64 +1,159 @@
 ---
 import { render } from 'astro:content';
 import Base from '../layouts/Base.astro';
-import PageHeader from '../components/PageHeader.astro';
-import Section from '../components/Section.astro';
-import { getOrdered } from '../lib/content';
+import SignBand from '../components/SignBand.astro';
+import RouteBullet from '../components/RouteBullet.astro';
+import LineSelect from '../components/LineSelect.astro';
+import LetsTalk from '../components/LetsTalk.astro';
+import { getOrdered, roleYears } from '../lib/content';
+import { SITE, SOCIAL } from '../site';
+import { PLATE } from '../lib/ui';
 
-const experience = await Promise.all(
-  (await getOrdered('experience')).map(async (job) => ({ job, ...(await render(job)) })),
-);
-const skills = await Promise.all(
-  (await getOrdered('skills')).map(async (skill) => ({ skill, ...(await render(skill)) })),
-);
+type Line = 'leadership' | 'product' | 'architecture';
+
+const pillars = await getOrdered('pillars');
+const bulletsFor = (lines: Line[]) =>
+  pillars.filter((p) => lines.includes(p.id as Line)).map((p) => ({ line: p.id as Line, code: p.data.code, name: p.data.short }));
+
+const roles = await Promise.all((await getOrdered('experience')).map(async (job) => ({ job, ...(await render(job)) })));
+const skills = await Promise.all((await getOrdered('skills')).map(async (skill) => ({ skill, ...(await render(skill)) })));
+const talks = await getOrdered('talks');
+const linkedin = SOCIAL.find((s) => s.label === 'LinkedIn');
 ---
 
-<Base title="Resume" description="Resume of Octavio Garbarino, Software Development Team Lead and Engineering Manager.">
-  <PageHeader
-    eyebrow="Resume"
-    title="Engineering Manager & Tech Lead"
-    lead="10+ years in the IT industry, with deep knowledge of web technologies on both back-end and front-end. I focus on quality, on aligning projects with business needs, and on a healthy environment where people grow."
-  />
+<Base title="Resume" description="Resume of Octavio Garbarino: Engineering Manager, Tech Lead and product-minded architect." bleed>
+  <LineSelect />
+  <SignBand name={SITE.name} heading home stack>
+    <p class="mt-2 sm:mt-3 text-sm sm:text-lg font-semibold text-sign-fg/85 text-balance"><span class="whitespace-nowrap">Engineering Manager</span> / <span class="whitespace-nowrap">Tech Lead</span> / <span class="whitespace-nowrap">Product-minded architect</span></p>
+    <ul class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-sign-fg/75">
+      <li><a href={`mailto:${SITE.email}`} class="underline-offset-4 hover:underline">{SITE.email}</a></li>
+      {linkedin && (
+        <li>
+          <a href={linkedin.href} class="underline-offset-4 hover:underline">
+            <span class="print:hidden">LinkedIn</span><span class="hidden print:inline">{linkedin.href.replace('https://www.', '')}</span>
+          </a>
+        </li>
+      )}
+      <li>Uruguay, UTC−3</li>
+    </ul>
+  </SignBand>
 
-  <div class="prose max-w-none mb-4">
-    <p>
-      I have a track record of guiding colleagues in their careers and building a knowledge-sharing culture that
-      develops new leaders across the organization. My leadership role has grown to managing engineers across several
-      teams. I'm also a presenter at conferences, meetups and internal events.
-    </p>
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 py-10 sm:py-14 print:py-4">
+    <div class="flex flex-wrap items-start justify-between gap-x-10 gap-y-5">
+      <p class="text-lg sm:text-xl print:text-base leading-relaxed print:leading-snug max-w-[62ch]">
+        Engineering Leader with over 12 years of experience leading cross-functional teams, scaling frontend and backend
+        operations, and driving product development. Proven track record managing 30+ developers, designing career
+        progression frameworks, conducting recruitment pipelines, and interfacing directly with international C-level
+        stakeholders (US, UK, Europe).
+      </p>
+      <button type="button" id="print-resume" class:list={['no-print', PLATE, 'border-2 border-fg hover:bg-fg hover:text-bg']}>Save as PDF</button>
+    </div>
+
+    <section aria-labelledby="experience-title" class="mt-14 print:mt-6">
+      <h2 id="experience-title" class="font-sign text-2xl sm:text-3xl print:text-lg font-extrabold tracking-[-0.025em] pb-3 print:pb-1 border-b-2 border-fg">Experience</h2>
+      <ol>
+        {roles.map(({ job, Content }) => (
+          <li data-lines={job.data.lines.join(' ')} class="resume-row grid sm:grid-cols-[8.5rem_minmax(0,1fr)] print:grid-cols-[5.5rem_minmax(0,1fr)] gap-x-6 gap-y-1 py-5 print:py-2 border-b border-line">
+            <p class="font-sign font-bold tabular-nums text-sm sm:pt-1">{roleYears(job.data)}</p>
+            <div>
+              <div class="flex items-start justify-between gap-4">
+                <h3 class="font-sign text-lg font-bold leading-snug">
+                  {job.data.role}<span class="ml-2 font-semibold text-muted">{job.data.company}</span>
+                </h3>
+                <span class="flex shrink-0 items-start gap-2">
+                  <span class="flex gap-1 pt-0.5" role="img" aria-label={`Lines: ${bulletsFor(job.data.lines).map((b) => b.name).join(', ')}`}>
+                    {bulletsFor(job.data.lines).map((b) => <RouteBullet {...b} size="sm" />)}
+                  </span>
+                  {!job.data.featured && (
+                    <button
+                      type="button"
+                      class="expand no-print -m-2.5 grid size-11 place-items-center text-muted hover:text-fg"
+                      aria-expanded="false"
+                      aria-controls={`role-${job.id}`}
+                      aria-label={`Show the full ${job.data.role} description`}
+                    >
+                      <svg class="size-5 transition-transform duration-300" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M5 8l5 5 5-5" />
+                      </svg>
+                    </button>
+                  )}
+                </span>
+              </div>
+              <div
+                id={`role-${job.id}`}
+                class:list={[
+                  'mt-1.5 print:mt-0.5 leading-relaxed print:leading-snug text-muted max-w-[72ch] [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1',
+                  !job.data.featured && 'line-clamp-2 print:line-clamp-none',
+                ]}
+              >
+                <Content />
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section aria-labelledby="skills-title" class="mt-14 print:mt-6">
+      <h2 id="skills-title" class="font-sign text-2xl sm:text-3xl print:text-lg font-extrabold tracking-[-0.025em] pb-3 print:pb-1 border-b-2 border-fg">Skills</h2>
+      <dl class="grid md:grid-cols-2 gap-x-12">
+        {skills.map(({ skill, Content }) => (
+          <div data-lines={skill.data.lines.join(' ')} class="resume-row py-5 print:py-2 border-b border-line">
+            <dt class="flex items-center gap-2.5 font-sign font-bold">
+              {bulletsFor(skill.data.lines).map((b) => <RouteBullet {...b} size="sm" />)}
+              {skill.data.title}
+            </dt>
+            <dd class="mt-1.5 print:mt-0.5 pl-[2.125rem] leading-relaxed print:leading-snug text-muted"><Content /></dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <div class="mt-14 print:mt-6 grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-x-12 gap-y-14">
+      <section aria-labelledby="talks-title">
+        <h2 id="talks-title" class="font-sign text-2xl sm:text-3xl print:text-lg font-extrabold tracking-[-0.025em] pb-3 print:pb-1 border-b-2 border-fg">Talks</h2>
+        <ul>
+          {talks.map((talk) => (
+            <li data-lines={talk.data.lines.join(' ')} class="resume-row flex items-start gap-3 py-3 print:py-1 border-b border-line">
+              <span class="flex w-[3.25rem] shrink-0 gap-1 pt-0.5" role="img" aria-label={`Lines: ${bulletsFor(talk.data.lines).map((b) => b.name).join(', ')}`}>
+                {bulletsFor(talk.data.lines).map((b) => <RouteBullet {...b} size="sm" />)}
+              </span>
+              <span>
+                <span class="block font-sign font-semibold leading-snug">{talk.data.title}</span>
+                {talk.data.venue && <span class="block mt-0.5 text-sm text-muted">{talk.data.venue}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="education-title">
+        <h2 id="education-title" class="font-sign text-2xl sm:text-3xl print:text-lg font-extrabold tracking-[-0.025em] pb-3 print:pb-1 border-b-2 border-fg">Education</h2>
+        <div class="resume-row py-5 border-b border-line">
+          <h3 class="font-sign text-lg font-bold leading-snug">Computer Engineering</h3>
+          <p class="mt-0.5 text-sm text-muted">Universidad de la República, Uruguay · ~63% of the degree completed</p>
+          <p class="mt-2 leading-relaxed text-muted">
+            Fundamentals in algorithms, software design, databases, discrete math and computing architecture.
+          </p>
+        </div>
+      </section>
+    </div>
   </div>
 
-  <Section title="Experience" intro="The most relevant roles I've held in the software industry.">
-    <ol class="relative border-l border-line ml-1.5 space-y-10">
-      {experience.map(({ job, Content }) => (
-        <li class="pl-6 relative">
-          <span class="absolute -left-[5px] top-2 size-2.5 rounded-full bg-bg border-2 border-accent" aria-hidden="true" />
-          <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-x-4">
-            <h3 class="font-medium">
-              {job.data.role} <span class="text-muted font-normal">· {job.data.company}</span>
-            </h3>
-            <span class="text-sm text-muted shrink-0">{job.data.period}</span>
-          </div>
-          <div class="prose max-w-none mt-2 text-[0.95rem]"><Content /></div>
-        </li>
-      ))}
-    </ol>
-  </Section>
-
-  <Section title="Skills" intro="Experience across languages and frameworks, and across every stage of software development.">
-    <dl class="grid sm:grid-cols-2 gap-x-10 gap-y-8">
-      {skills.map(({ skill, Content }) => (
-        <div>
-          <dt class="font-medium">{skill.data.title}</dt>
-          <dd class="prose prose-sm max-w-none mt-1"><Content /></dd>
-        </div>
-      ))}
-    </dl>
-  </Section>
-
-  <Section title="Education">
-    <p class="leading-relaxed">
-      Computer Engineering at Universidad de la República, Uruguay (63% of the degree completed).
-    </p>
-  </Section>
+  <LetsTalk />
 </Base>
+
+<script>
+  document.getElementById('print-resume')?.addEventListener('click', () => window.print());
+
+  // Non-featured roles open in place: the chevron lifts the two-line clamp.
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.expand')) {
+    const body = document.getElementById(button.getAttribute('aria-controls')!);
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') !== 'true';
+      button.setAttribute('aria-expanded', String(open));
+      body?.classList.toggle('line-clamp-2', !open);
+      button.querySelector('svg')?.classList.toggle('rotate-180', open);
+    });
+  }
+</script>

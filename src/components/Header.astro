@@ -2,22 +2,29 @@
 import { NAV, SITE } from '../site';
 import ThemeToggle from './ThemeToggle.astro';
 
+interface Props {
+  wide?: boolean;
+  /** Pages that set the name as their own station sign hide the header brand. */
+  brand?: boolean;
+}
+const { wide = false, brand = true } = Astro.props;
+
 const path = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`));
 ---
 
-<header class="border-b border-line">
-  <div class="max-w-3xl mx-auto px-5 sm:px-6 py-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-    <a href="/" class="font-serif text-xl tracking-tight hover:text-accent transition-colors">{SITE.name}</a>
-    <div class="flex items-center gap-4">
+<header class="font-sign border-b border-line">
+  <div class:list={['mx-auto px-5 sm:px-6 py-2 flex flex-wrap items-center gap-x-6', brand ? 'justify-between' : 'justify-end', wide ? 'max-w-6xl' : 'max-w-3xl']}>
+    {brand && <a href="/" class="py-2.5 font-bold tracking-tight hover:text-accent transition-colors">{SITE.name}</a>}
+    <div class="flex items-center gap-1">
       <nav aria-label="Main">
-        <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <ul class="flex flex-wrap">
           {NAV.filter((item) => item.href !== '/').map((item) => (
             <li>
               <a
                 href={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
-                class="text-muted hover:text-fg transition-colors aria-[current=page]:text-fg aria-[current=page]:underline aria-[current=page]:decoration-accent aria-[current=page]:underline-offset-8"
+                class="block px-2.5 py-3 text-sm font-semibold text-muted hover:text-fg transition-colors aria-[current=page]:text-fg aria-[current=page]:underline aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8"
               >
                 {item.label}
               </a>

@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# impeccable: screenshots, live sessions and machine-local settings
+.impeccable/review/
+.impeccable/live/
+.impeccable/config.local.json
+.impeccable/questions/
+.impeccable/
+.claude/

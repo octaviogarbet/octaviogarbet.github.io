@@ -1,0 +1,26 @@
+---
+// Line selection: route bullets with [data-select-line] toggle html[data-active-line]; styles live in global.css.
+---
+
+<p id="line-status" class="sr-only" aria-live="polite"></p>
+
+<script>
+  const root = document.documentElement;
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-select-line]')];
+  const status = document.getElementById('line-status');
+
+  const select = (line: string | null) => {
+    if (line) root.dataset.activeLine = line;
+    else delete root.dataset.activeLine;
+    for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.selectLine === line));
+    const name = buttons.find((b) => b.dataset.selectLine === line)?.title.replace('Highlight the ', '');
+    if (status) status.textContent = name ? `Showing the ${name}` : 'Showing all lines';
+  };
+
+  for (const b of buttons) {
+    b.addEventListener('click', () => select(root.dataset.activeLine === b.dataset.selectLine ? null : b.dataset.selectLine!));
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root.dataset.activeLine) select(null);
+  });
+</script>

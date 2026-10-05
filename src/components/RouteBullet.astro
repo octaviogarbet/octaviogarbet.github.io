@@ -1,0 +1,42 @@
+---
+/**
+ * A transit route bullet: the line's letter in a circle of its ink.
+ * Interactive bullets toggle the page-wide line highlight (see the script in index.astro).
+ */
+interface Props {
+  line: 'leadership' | 'product' | 'architecture';
+  code: string;
+  name: string;
+  size?: 'sm' | 'md' | 'lg';
+  interactive?: boolean;
+}
+const { line, code, name, size = 'md', interactive = false } = Astro.props;
+const sizes = {
+  sm: 'size-6 text-xs',
+  md: 'size-11 text-lg',
+  lg: 'size-11 sm:size-14 text-lg sm:text-2xl',
+};
+const classes = [
+  'route-bullet shrink-0 grid place-items-center rounded-full font-sign font-extrabold leading-none text-bullet-fg',
+  sizes[size],
+];
+---
+
+{interactive ? (
+  <button
+    type="button"
+    class:list={[...classes, 'cursor-pointer']}
+    style={`background: var(--l-${line})`}
+    data-select-line={line}
+    data-lines={line}
+    aria-pressed="false"
+    aria-label={`Highlight the ${name} line`}
+    title={`Highlight the ${name} line`}
+  >
+    <span aria-hidden="true" class="translate-y-[0.06em]">{code}</span>
+  </button>
+) : (
+  <span class:list={classes} style={`background: var(--l-${line})`} data-lines={line} aria-hidden="true">
+    <span class="translate-y-[0.06em]">{code}</span>
+  </span>
+)}

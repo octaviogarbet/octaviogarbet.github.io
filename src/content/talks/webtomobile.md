@@ -1,6 +1,7 @@
 ---
 title: "Web to mobile developer"
 order: 7
+lines: [architecture]
 ---
 
-As web developers (specially if you are a frontend developer) we have several paths to become a mobile developer. In this talk we discuss some of them and explain basics topics of Ionic which is a great option for an Hybrid application.
+As web developers (especially front-end developers) we have several paths to becoming mobile developers. In this talk we discuss some of them and explain the basics of Ionic, a great option for hybrid applications.

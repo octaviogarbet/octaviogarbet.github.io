@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import SignBand from '../../components/SignBand.astro';
+import RouteBullet from '../../components/RouteBullet.astro';
+import LineSelect from '../../components/LineSelect.astro';
+import LetsTalk from '../../components/LetsTalk.astro';
+import SystemMap from '../../components/SystemMap.astro';
+import { getCaseStudies, getOrdered, roleYears } from '../../lib/content';
+import { SITE } from '../../site';
+
+type Line = 'leadership' | 'product' | 'architecture';
+
+const studies = await getCaseStudies();
+const pillars = await getOrdered('pillars');
+const bulletsFor = (lines: Line[]) =>
+  pillars.filter((p) => lines.includes(p.id as Line)).map((p) => ({ line: p.id as Line, code: p.data.code, name: p.data.short }));
+---
+
+<Base title="Case studies" description="Case studies by Octavio Garbarino: what was built, why, and how it was led." bleed>
+  <LineSelect />
+  <SignBand name={SITE.name} home />
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 pt-12 sm:pt-16 pb-16 sm:pb-20">
+    <h1 class="font-sign text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-[-0.035em]">Case studies</h1>
+    <p class="mt-5 text-lg sm:text-xl leading-relaxed text-muted max-w-[56ch]">
+      Products I founded, led or built: the problem, the architecture, how it evolved with AI, and what I learned.
+    </p>
+
+    <p class="mt-5 text-md sm:text-lg leading-relaxed text-muted max-w-[56ch]">
+      Due to non-disclosure agreements, formal enterprise client work is omitted here; the case studies below represent independent products, entrepreneurial ventures, and community leadership initiatives where I led strategy, architecture, and execution.
+    </p>
+
+    {/* Each study is a route on the board: the lines it served, where it goes, the network it runs on. */}
+    <ol class="mt-12 border-t-2 border-fg">
+      {studies.map((study) => {
+        const { title, summary, role, start, end, timeline, lines, map } = study.data;
+        const [name, subtitle] = title.split(' — ');
+        return (
+          <li data-lines={lines.join(' ')} class="border-b border-line">
+            <a href={`/case-studies/${study.id}`} class="group grid md:grid-cols-[minmax(0,1fr)_auto] items-center gap-x-10 gap-y-4 py-8">
+              <div>
+                <div class="flex items-center gap-1.5" role="img" aria-label={`Lines: ${bulletsFor(lines).map((b) => b.name).join(', ')}`}>
+                  {bulletsFor(lines).map((b) => <RouteBullet {...b} size="sm" />)}
+                </div>
+                <h2 class="mt-3 font-sign text-2xl sm:text-3xl font-extrabold tracking-[-0.02em] leading-tight group-hover:underline decoration-[3px] underline-offset-[6px]">{name}</h2>
+                {subtitle && <p class="mt-1 font-sign font-semibold text-muted text-balance">{subtitle}</p>}
+                <p class="mt-3 leading-relaxed text-muted max-w-[64ch]">{summary}</p>
+                <p class="mt-3 text-sm font-semibold tabular-nums">
+                  {role}{(timeline || start) && <span class="text-muted font-normal"> · {timeline ?? roleYears({ start, end, period: '' })}</span>}
+                </p>
+              </div>
+              <div class="flex items-center gap-6 justify-between md:justify-end">
+                {map && <SystemMap map={map} variant="mini" />}
+                <svg class="size-7 shrink-0 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M4 10h11M11 5l5 5-5 5" />
+                </svg>
+              </div>
+            </a>
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+
+  <LetsTalk />
+</Base>
