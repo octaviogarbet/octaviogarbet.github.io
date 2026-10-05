@@ -4,7 +4,7 @@ export const SITE = {
   name: 'Octavio Garbarino',
   title: 'Octavio Garbarino, Engineering Manager',
   description:
-    'Engineering Manager and Tech Lead from Uruguay with 10+ years building web products, leading teams and speaking at meetups and conferences.',
+    'Engineering Manager and Tech Lead from Uruguay with 12+ years building web products, leading teams and speaking at meetups and conferences.',
   url: 'https://oti.noroof.dev',
   email: 'octavio.garbarino@noroof.dev',
   // Set to a Formspree form id (e.g. "xyzabcd") to enable the contact form on /services.
