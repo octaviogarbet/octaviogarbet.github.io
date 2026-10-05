@@ -1,0 +1,48 @@
+---
+import RouteBullet from './RouteBullet.astro';
+import { getOrdered } from '../lib/content';
+
+/**
+ * The station sign every page opens with: a black band, a thin white rule, the station name
+ * on the left and the line bullets that serve it on the right (they select a line page-wide).
+ */
+interface Props {
+  name: string;
+  /** Render the name as the page's h1 (resume) instead of a plain sign label (home, about). */
+  heading?: boolean;
+  /** Link the name back to the home station; every page except home sets this. */
+  home?: boolean;
+  /** Put the line selectors on their own row on phones (the resume band carries a title and contacts). */
+  stack?: boolean;
+  /** Pages with nothing to highlight (404) leave the line selectors out. */
+  selectors?: boolean;
+}
+const { name, heading = false, home = false, stack = false, selectors = true } = Astro.props;
+const lines = await getOrdered('pillars');
+const Name = heading ? 'h1' : 'p';
+---
+
+<div class="bg-sign text-sign-fg font-sign">
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 pt-2">
+    <div class="h-px bg-sign-fg/70"></div>
+    <div class:list={['py-4 sm:py-6 flex justify-between gap-4', stack ? 'flex-col items-start sm:flex-row sm:items-center' : 'items-center']}>
+      <div class="min-w-0">
+        <Name class="text-[clamp(1.375rem,5vw,3.25rem)] font-bold tracking-[-0.02em] leading-none">
+          {home ? (
+            <a href="/" class="underline-offset-[0.15em] decoration-[0.06em] hover:underline">{name}</a>
+          ) : (
+            name
+          )}
+        </Name>
+        <slot />
+      </div>
+      {selectors && (
+      <div role="group" aria-label="Lines" class="no-print flex shrink-0 gap-2 sm:gap-3">
+        {lines.map((l) => (
+          <RouteBullet line={l.id as 'leadership' | 'product' | 'architecture'} code={l.data.code} name={l.data.short} size="lg" interactive />
+        ))}
+      </div>
+      )}
+    </div>
+  </div>
+</div>

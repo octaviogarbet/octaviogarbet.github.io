@@ -1,0 +1,211 @@
+---
+/**
+ * A study's architecture drawn as a transit map, in ink only (colour still means a pillar line).
+ * Stations sit on a grid; links run straight, or along the longer axis and then at 45°.
+ * Stations where three or more links meet are interchanges.
+ *
+ * Variants: full (labelled, clickable; phones get a trunk-and-spurs strip), compact (the sticky
+ * "you are here" map beside the story) and mini (the bare network on the index).
+ */
+interface Station {
+  id: string;
+  label: string;
+  sub?: string;
+  at: [number, number];
+  section: string;
+  side?: 'below' | 'above' | 'left' | 'right' | 'below-right';
+}
+interface Props {
+  map: { stations: Station[]; links: [string, string][] };
+  /** Section id each station links to (story headings). */
+  hrefs?: Record<string, string>;
+  variant?: 'full' | 'compact' | 'mini';
+  label?: string;
+}
+const { map, hrefs = {}, variant = 'full', label = 'System map' } = Astro.props;
+const full = variant === 'full';
+
+const COL = full ? 170 : variant === 'compact' ? 70 : 56;
+const ROW = full ? 104 : variant === 'compact' ? 44 : 28;
+const PAD = full ? 96 : 16;
+const byId = new Map(map.stations.map((s) => [s.id, s]));
+const cols = Math.max(...map.stations.map((s) => s.at[0]));
+const rows = Math.max(...map.stations.map((s) => s.at[1]));
+const topRoom = full && map.stations.some((s) => s.at[1] === 0 && s.side === 'above') ? 50 : 0;
+const rightRoom = full && map.stations.some((s) => s.at[0] === cols && s.side === 'right') ? 190 : PAD;
+const pos = (s: Station) => ({ x: PAD + s.at[0] * COL, y: (full ? 34 : PAD) + topRoom + s.at[1] * ROW });
+const width = PAD + cols * COL + rightRoom;
+const height = (full ? 34 : PAD) + topRoom + rows * ROW + (full ? 70 : PAD);
+
+const degree = (id: string) => map.links.filter(([a, b]) => a === id || b === id).length;
+const route = (fromId: string, toId: string) => {
+  const a = pos(byId.get(fromId)!);
+  const b = pos(byId.get(toId)!);
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (!dx || !dy) return `M${a.x} ${a.y} L${b.x} ${b.y}`;
+  const d = Math.min(Math.abs(dx), Math.abs(dy));
+  const mx = Math.abs(dx) > d ? a.x + Math.sign(dx) * (Math.abs(dx) - d) : a.x;
+  const my = Math.abs(dy) > d ? a.y + Math.sign(dy) * (Math.abs(dy) - d) : a.y;
+  return `M${a.x} ${a.y} L${mx} ${my} L${b.x} ${b.y}`;
+};
+
+// Label anchor for each side: [dx, dy of the name, text-anchor]; the subtitle sits one line under it.
+const place = (s: Station, r: number) => {
+  switch (s.side ?? 'below') {
+    case 'right': return { x: r + 12, y: 5, anchor: 'start' };
+    case 'left': return { x: -(r + 12), y: 5, anchor: 'end' };
+    case 'above': return { x: 0, y: -(r + 30), anchor: 'middle' };
+    case 'below-right': return { x: 8, y: r + 26, anchor: 'start' };
+    default: return { x: 0, y: r + 26, anchor: 'middle' };
+  }
+};
+
+// Phones: each connected network gets its own strip. Its longest chain is the trunk; every other
+// station hangs off the trunk stop it links to.
+const neighbours = (id: string) => map.links.flatMap(([a, b]) => (a === id ? [b] : b === id ? [a] : []));
+const farthest = (start: string): string[] => {
+  const prev = new Map<string, string | null>([[start, null]]);
+  const queue = [start];
+  let last = start;
+  while (queue.length) {
+    last = queue.shift()!;
+    for (const n of neighbours(last)) if (!prev.has(n)) (prev.set(n, last), queue.push(n));
+  }
+  const path = [];
+  for (let at: string | null = last; at; at = prev.get(at) ?? null) path.push(at);
+  return path.reverse();
+};
+const strips: { trunk: string[]; offTrunk: Station[] }[] = [];
+const seen = new Set<string>();
+for (const s of map.stations) {
+  if (seen.has(s.id)) continue;
+  const trunk = farthest(farthest(s.id).at(-1)!);
+  const members = new Set(farthest(s.id));
+  // Every station reachable from this one belongs to the same network.
+  const stack = [s.id];
+  while (stack.length) {
+    const id = stack.pop()!;
+    if (members.has(id) && seen.has(id)) continue;
+    members.add(id);
+    seen.add(id);
+    for (const n of neighbours(id)) if (!seen.has(n)) stack.push(n);
+  }
+  const offTrunk = [...members]
+    .filter((id) => !trunk.includes(id) && !trunk.some((t) => neighbours(t).includes(id)))
+    .map((id) => byId.get(id)!);
+  strips.push({ trunk, offTrunk });
+}
+const spursOf = (id: string, trunk: string[]) => neighbours(id).filter((n) => !trunk.includes(n)).map((n) => byId.get(n)!);
+---
+
+{variant === 'mini' && (
+  <svg viewBox={`0 0 ${width} ${height}`} class="h-16 w-auto" aria-hidden="true">
+    <g fill="none" stroke="var(--fg)" stroke-width="6" stroke-linejoin="round">
+      {map.links.map(([a, b]) => <path d={route(a, b)} />)}
+    </g>
+    {map.stations.map((s) => {
+      const p = pos(s);
+      return <circle cx={p.x} cy={p.y} r={degree(s.id) >= 3 ? 9 : 6} fill="var(--bg)" stroke="var(--fg)" stroke-width="3.5" />;
+    })}
+  </svg>
+)}
+
+{variant === 'compact' && (
+  <svg viewBox={`0 0 ${width} ${height}`} class="w-full h-auto" aria-hidden="true">
+    <g fill="none" stroke="var(--fg)" stroke-width="6" stroke-linejoin="round">
+      {map.links.map(([a, b]) => <path d={route(a, b)} />)}
+    </g>
+    {map.stations.map((s) => {
+      const p = pos(s);
+      return <circle class="map-dot" data-section={hrefs[s.id]} cx={p.x} cy={p.y} r={degree(s.id) >= 3 ? 10 : 7} fill="var(--bg)" stroke="var(--fg)" stroke-width="4" />;
+    })}
+  </svg>
+)}
+
+{full && (
+  <figure class="system-map" aria-label={label}>
+    <div class="hidden md:block overflow-x-auto">
+      <svg viewBox={`0 0 ${width} ${height}`} class="w-full h-auto max-w-[68rem]" role="group" aria-label={label}>
+        <g fill="none" stroke="var(--fg)" stroke-width="12" stroke-linejoin="round" aria-hidden="true">
+          {map.links.map(([a, b]) => <path class="draw" style="--i: 0" pathLength="1" d={route(a, b)} />)}
+        </g>
+        {map.stations.map((s, i) => {
+          const p = pos(s);
+          const r = degree(s.id) >= 3 ? 17 : 12;
+          const l = place(s, r);
+          return (
+            <a href={hrefs[s.id] ? `#${hrefs[s.id]}` : undefined} class="map-station" data-section={hrefs[s.id]} aria-label={`${s.label}${s.sub ? `, ${s.sub}` : ''}: read more`}>
+              <circle class="pop" style={`--i: ${i + 4}`} cx={p.x} cy={p.y} r={r} fill="var(--bg)" stroke="var(--fg)" stroke-width={r > 12 ? 7 : 6} />
+              <text x={p.x + l.x} y={p.y + l.y} text-anchor={l.anchor} class="font-sign" font-size="15" font-weight="700" fill="var(--fg)" stroke="var(--bg)" stroke-width="3" paint-order="stroke">{s.label}</text>
+              {s.sub && <text x={p.x + l.x} y={p.y + l.y + 19} text-anchor={l.anchor} font-size="12.5" fill="var(--muted)" stroke="var(--bg)" stroke-width="3" paint-order="stroke">{s.sub}</text>}
+            </a>
+          );
+        })}
+      </svg>
+    </div>
+    {/* Phones: the longest chain as the trunk; other stations branch off the stop they connect to. */}
+    {strips.map(({ trunk, offTrunk }, n) => (
+    <ol class:list={['stops md:hidden', n > 0 && 'mt-6']} style="--c: var(--fg); --w: 8px">
+      {trunk.map((id) => {
+        const s = byId.get(id)!;
+        const spurs = spursOf(id, trunk);
+        return (
+          <li>
+            <a href={hrefs[id] ? `#${hrefs[id]}` : undefined} class="map-station group grid grid-cols-[2.75rem_1fr] items-start gap-x-3 min-h-12 py-2" data-section={hrefs[id]}>
+              <span
+                class:list={['station-dot relative z-10 justify-self-center mt-0.5 rounded-full border-fg bg-bg transition-colors', degree(id) >= 3 ? 'size-7 border-[6px]' : 'size-[1.375rem] border-[4px]']}
+                aria-hidden="true"
+              ></span>
+              <span>
+                <span class="block font-sign font-bold leading-snug group-hover:underline decoration-2 underline-offset-4">{s.label}</span>
+                {s.sub && <span class="block mt-0.5 text-sm text-muted">{s.sub}</span>}
+              </span>
+            </a>
+            {spurs.length > 0 && (
+              <ul class="spurs" aria-label={`Branches from ${s.label}`}>
+                {spurs.map((b) => (
+                  <li>
+                    <a href={hrefs[b.id] ? `#${hrefs[b.id]}` : undefined} class="map-station group grid grid-cols-[1.375rem_1fr] items-start gap-x-3 min-h-11 py-1.5" data-section={hrefs[b.id]}>
+                      <span class="station-dot relative z-10 mt-0.5 size-[1.125rem] rounded-full border-[4px] border-fg bg-bg transition-colors" aria-hidden="true"></span>
+                      <span>
+                        <span class="block font-sign font-bold text-base leading-snug group-hover:underline decoration-2 underline-offset-4">{b.label}</span>
+                        {b.sub && <span class="block text-sm text-muted">{b.sub}</span>}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        );
+      })}
+      {offTrunk.map((s) => (
+        <li><a href={hrefs[s.id] ? `#${hrefs[s.id]}` : undefined} class="map-station block pl-14 py-2 font-sign font-bold" data-section={hrefs[s.id]}>{s.label}</a></li>
+      ))}
+    </ol>
+    ))}
+  </figure>
+)}
+
+<style>
+  /* A spur leaves the trunk sideways and ends at its own stop. */
+  .spurs {
+    position: relative;
+    margin: 0 0 0.25rem 3.25rem;
+    padding: 0;
+    list-style: none;
+  }
+  .spurs li {
+    position: relative;
+  }
+  .spurs li::before {
+    content: '';
+    position: absolute;
+    left: -1.875rem;
+    top: 1.05rem;
+    width: 2.2rem;
+    height: 6px;
+    background: var(--fg);
+  }
+</style>

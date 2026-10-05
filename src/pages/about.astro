@@ -1,0 +1,122 @@
+---
+import { render } from 'astro:content';
+import { Picture } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import SignBand from '../components/SignBand.astro';
+import RouteBullet from '../components/RouteBullet.astro';
+import LineSelect from '../components/LineSelect.astro';
+import LetsTalk from '../components/LetsTalk.astro';
+import { getOrdered } from '../lib/content';
+import { SITE } from '../site';
+import portrait from '../assets/octavio.webp';
+
+type Line = 'leadership' | 'product' | 'architecture';
+
+const pillars = await getOrdered('pillars');
+const bulletFor = (line: Line) => {
+  const p = pillars.find((p) => p.id === line)!;
+  return { line, code: p.data.code, name: p.data.short };
+};
+
+const sections = await Promise.all((await getOrdered('about')).map(async (entry) => ({ entry, ...(await render(entry)) })));
+const [intro, ...rest] = sections;
+// People leads at full width; the other lines sit side by side beneath it; anything without a line is off the map.
+const people = rest.filter(({ entry }) => entry.data.line === 'leadership');
+const branches = rest.filter(({ entry }) => entry.data.line && entry.data.line !== 'leadership');
+const offMap = rest.filter(({ entry }) => !entry.data.line);
+---
+
+<Base title="About" description="About Octavio Garbarino: how he leads people, builds products and works with teams." bleed>
+  <LineSelect />
+  <SignBand name={SITE.name} home />
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-16 grid md:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] items-center gap-x-14 gap-y-8">
+    <Picture
+      src={portrait}
+      formats={['avif', 'webp']}
+      widths={[360, 640, 960]}
+      sizes="(min-width: 1152px) 380px, (min-width: 768px) 33vw, 90vw"
+      alt={`Portrait of ${SITE.name}`}
+      loading="eager"
+      fetchpriority="high"
+      class="w-full max-w-xs md:max-w-sm aspect-square object-cover rounded-[4px]"
+    />
+    <div>
+      <h1 class="font-sign text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-[-0.035em]">{intro.entry.data.title}</h1>
+      <div class="mt-6 text-lg sm:text-xl leading-relaxed text-muted max-w-[56ch]"><intro.Content /></div>
+    </div>
+  </div>
+
+  <div class="border-t border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20 grid md:grid-cols-2 gap-x-12 gap-y-14">
+      {[...people, ...branches].map(({ entry, Content }) => {
+        const line = entry.data.line as Line;
+        const leads = line === 'leadership';
+        return (
+          <section
+            aria-labelledby={`about-${entry.id}`}
+            class:list={[leads && 'md:col-span-2']}
+            style={`--c: var(--l-${line}); --w: ${leads ? 12 : 8}px`}
+          >
+            <div class="flex items-center gap-3 font-sign">
+              <RouteBullet {...bulletFor(line)} interactive />
+              <h2
+                id={`about-${entry.id}`}
+                data-lines={line}
+                class:list={['leading-tight text-balance', leads ? 'text-2xl sm:text-3xl font-extrabold tracking-[-0.02em]' : 'text-xl font-bold tracking-[-0.01em]']}
+              >
+                {entry.data.title}
+              </h2>
+            </div>
+            <div
+              data-lines={line}
+              class:list={[
+                'pillar-line mt-5 pl-[3.25rem] pb-7 leading-relaxed [&_p+p]:mt-4',
+                leads ? 'text-lg text-fg max-w-[66ch]' : 'text-muted max-w-[60ch]',
+              ]}
+            >
+              <Content />
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+
+  {offMap.map(({ entry, Content }) => (
+    <section aria-labelledby={`about-${entry.id}`} class="border-t border-line">
+      <div class="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
+        <h2 id={`about-${entry.id}`} class="font-sign text-3xl sm:text-4xl font-extrabold tracking-[-0.025em]">{entry.data.title}</h2>
+        <div class="off-map mt-8 grid md:grid-cols-2 gap-x-12 gap-y-3 leading-relaxed text-muted">
+          <Content />
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <LetsTalk portrait={false} />
+</Base>
+
+<style>
+  /* "Off the map" renders its h3 subsections as two columns: each heading starts a column with its paragraph. */
+  .off-map :global(h3) {
+    font-family: var(--font-sign);
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--fg);
+  }
+  .off-map :global(h3:not(:first-child)) {
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .off-map :global(h3:not(:first-child)) {
+      margin-top: 0;
+    }
+    .off-map :global(h3) {
+      grid-row: 1;
+    }
+    .off-map :global(p) {
+      grid-row: 2;
+    }
+  }
+</style>

@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+import SignBand from '../components/SignBand.astro';
+import { NAV, SITE } from '../site';
+
+// Every real destination, Home first; flagged sections join automatically when switched on.
+const destinations = NAV.map((item) => ({ ...item, label: item.href === '/' ? 'Home' : item.label }));
+---
+
+<Base title="Page not found" description="This page doesn’t exist or has moved." bleed>
+  <SignBand name={SITE.name} home selectors={false} />
+
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-20 grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-center gap-x-12 gap-y-8">
+    {/* The line runs in from off the map and ends short; only then does the stop it never reaches appear. */}
+    <svg class="w-full max-w-md h-auto overflow-visible" viewBox="0 0 480 200" aria-hidden="true">
+      <path class="draw" style="--i: 0" pathLength="1" d="M-2400 100 H272" fill="none" stroke="var(--fg)" stroke-width="16" />
+      <rect class="pop" style="--i: 11" x="264" y="72" width="16" height="56" fill="var(--fg)" />
+      <circle class="settle" style="animation-delay: 1.5s" cx="410" cy="100" r="30" fill="var(--bg)" stroke="var(--fg)" stroke-width="8" />
+    </svg>
+    <div>
+      <h1 class="font-sign text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-[-0.035em] text-balance">
+        This stop isn’t on the map.
+      </h1>
+      <p class="mt-6 text-lg sm:text-xl leading-relaxed text-muted max-w-[48ch]">The page you were looking for doesn’t exist or has moved.</p>
+    </div>
+  </div>
+
+  <section aria-labelledby="next-title" class="border-t border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-6 py-14 sm:py-16">
+      <h2 id="next-title" class="font-sign text-2xl font-extrabold tracking-[-0.02em]">Where to next</h2>
+      <ol class="stops mt-6 pb-5 max-w-sm" style="--c: var(--fg); --w: 8px">
+        {destinations.map((d, i) => (
+          <li>
+            <a href={d.href} class="group grid grid-cols-[2.75rem_1fr_auto] items-center gap-x-3 min-h-14 py-2">
+              <span
+                class:list={[
+                  'relative z-10 justify-self-center size-[1.375rem] rounded-full border-[4px] border-fg transition-colors duration-300',
+                  i === 0 ? 'bg-fg' : 'bg-bg group-hover:bg-fg group-focus-visible:bg-fg',
+                ]}
+                aria-hidden="true"
+              ></span>
+              <span class="font-sign text-lg font-bold group-hover:underline decoration-2 underline-offset-4">{d.label}</span>
+              <svg class="size-5 text-muted transition-transform duration-300 group-hover:translate-x-1 group-hover:text-fg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M4 10h11M11 5l5 5-5 5" />
+              </svg>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</Base>

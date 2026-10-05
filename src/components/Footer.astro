@@ -1,0 +1,22 @@
+---
+import { FEATURE_BLOG } from 'astro:env/server';
+import { SITE, SOCIAL } from '../site';
+
+interface Props {
+  wide?: boolean;
+}
+const { wide = false } = Astro.props;
+---
+
+<footer class="font-sign border-t border-line">
+  <div class:list={['mx-auto px-5 sm:px-6 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-muted', wide ? 'max-w-6xl' : 'max-w-3xl']}>
+    <p>© {new Date().getFullYear()} {SITE.name}</p>
+    <ul class="flex flex-wrap -mx-2">
+      <li><a href={`mailto:${SITE.email}`} class="block px-2 py-3 hover:text-fg transition-colors">Email</a></li>
+      {SOCIAL.map((s) => (
+        <li><a href={s.href} target="_blank" rel="noopener noreferrer" class="block px-2 py-3 hover:text-fg transition-colors">{s.label}</a></li>
+      ))}
+      {FEATURE_BLOG && <li><a href="/rss.xml" class="block px-2 py-3 hover:text-fg transition-colors">RSS</a></li>}
+    </ul>
+  </div>
+</footer>

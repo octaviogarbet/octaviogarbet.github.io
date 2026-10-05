@@ -1,0 +1,254 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import { FEATURE_SERVICES } from 'astro:env/server';
+import Base from '../layouts/Base.astro';
+import RouteBullet from '../components/RouteBullet.astro';
+import LetsTalk from '../components/LetsTalk.astro';
+import SignBand from '../components/SignBand.astro';
+import LineSelect from '../components/LineSelect.astro';
+import { getOrdered } from '../lib/content';
+import { SITE } from '../site';
+import { PLATE as plate } from '../lib/ui';
+
+type Line = 'leadership' | 'product' | 'architecture';
+
+const withContent = async <E extends CollectionEntry<'pillars' | 'talks' | 'experience'>>(entry: E) => ({
+  entry,
+  ...(await render(entry)),
+});
+
+const pillars = await Promise.all((await getOrdered('pillars')).map(withContent));
+const talks = await Promise.all((await getOrdered('talks')).map(withContent));
+const roles = await Promise.all((await getOrdered('experience')).map(withContent));
+
+// Each pillar is a line. Roles and talks are stops served by one or more lines.
+const lines = pillars.map(({ entry, Content }) => ({
+  key: entry.id as Line,
+  code: entry.data.code,
+  short: entry.data.short,
+  title: entry.data.title,
+  hasBody: Boolean(entry.body?.replace(/<!--[\s\S]*?-->/g, '').trim()),
+  Content,
+}));
+const roleStops = roles.map(({ entry: r, Content }) => ({
+  id: `role-${r.id}`,
+  kind: 'role' as const,
+  name: r.data.role,
+  meta: `${r.data.company} · ${r.data.period}`,
+  lines: r.data.lines,
+  featured: r.data.featured,
+  hasBody: Boolean(r.body?.trim()),
+  Content,
+}));
+const talkStops = talks.map(({ entry: t, Content }) => ({
+  id: `talk-${t.id}`,
+  kind: 'talk' as const,
+  name: t.data.title,
+  meta: ['Talk', t.data.venue].filter(Boolean).join(' · '),
+  lines: t.data.lines,
+  featured: t.data.featured,
+  hasBody: Boolean(t.body?.trim()),
+  Content,
+}));
+type Stop = (typeof roleStops)[number] | (typeof talkStops)[number];
+const featuredStops = [...roleStops, ...talkStops].filter((s) => s.featured);
+const others = [
+  { title: 'Other roles', stops: roleStops.filter((s) => !s.featured) },
+  { title: 'Other talks', stops: talkStops.filter((s) => !s.featured) },
+].filter((group) => group.stops.length > 0);
+const lineAt = (key: Line) => lines.find((l) => l.key === key)!;
+const [lead, prod, arch] = (['leadership', 'product', 'architecture'] as const).map(lineAt);
+
+const linesOf = (stop: Stop) => lines.filter((l) => stop.lines.includes(l.key));
+---
+
+<Base bleed>
+  <LineSelect />
+  {/* Station sign */}
+  <section aria-labelledby="hero-title" class="font-sign">
+    <SignBand name={SITE.name} />
+
+    <div class="max-w-6xl mx-auto px-5 sm:px-6 py-10 sm:py-14 lg:py-20 grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-center gap-x-10 lg:gap-x-12 gap-y-6">
+      {/* Desktop: People runs straight through the interchange; Product and Architecture branch into it. */}
+      <svg class="hidden md:block w-full h-auto" viewBox="0 0 480 360" aria-hidden="true">
+        <g fill="none" stroke-linejoin="round">
+          <path data-lines="leadership" class="draw" style="--i: 0" pathLength="1" stroke="var(--l-leadership)" stroke-width="24" d="M64 180 H480" />
+          <path data-lines="product" class="draw" style="--i: 1" pathLength="1" stroke="var(--l-product)" stroke-width="14" d="M64 60 H330 L410 140" />
+          <path data-lines="architecture" class="draw" style="--i: 2" pathLength="1" stroke="var(--l-architecture)" stroke-width="14" d="M64 300 H330 L410 220" />
+        </g>
+        {[
+          { l: lead, y: 180, i: 0 },
+          { l: prod, y: 60, i: 1 },
+          { l: arch, y: 300, i: 2 },
+        ].map(({ l, y, i }) => (
+          <g data-lines={l.key} class="pop" style={`--i: ${i}`}>
+            <circle cx="40" cy={y} r={i === 0 ? 28 : 22} fill={`var(--l-${l.key})`} />
+            <text x="40" y={y} dy="0.36em" text-anchor="middle" font-size={i === 0 ? 26 : 20} font-weight="800" fill="var(--bullet-fg)" class="font-sign">{l.code}</text>
+            <text x="84" y={y - (i === 0 ? 26 : 20)} font-size={i === 0 ? 21 : 16} font-weight={i === 0 ? 800 : 600} fill="var(--fg)" class="font-sign">{l.short}</text>
+          </g>
+        ))}
+        <rect class="settle" x="384" y="118" width="56" height="124" rx="28" fill="var(--bg)" stroke="var(--fg)" stroke-width="7" />
+      </svg>
+      {/* Mobile: People runs down the middle and through the interchange; the others join it. */}
+      <svg class="md:hidden w-full max-w-sm h-auto" viewBox="0 0 360 240" aria-hidden="true">
+        <g fill="none" stroke-linejoin="round">
+          <path data-lines="leadership" class="draw" style="--i: 0" pathLength="1" stroke="var(--l-leadership)" stroke-width="22" d="M180 56 V240" />
+          <path data-lines="product" class="draw" style="--i: 1" pathLength="1" stroke="var(--l-product)" stroke-width="12" d="M60 50 V104 L148 192" />
+          <path data-lines="architecture" class="draw" style="--i: 2" pathLength="1" stroke="var(--l-architecture)" stroke-width="12" d="M300 50 V104 L212 192" />
+        </g>
+        {[
+          { l: prod, x: 60, i: 1 },
+          { l: lead, x: 180, i: 0 },
+          { l: arch, x: 300, i: 2 },
+        ].map(({ l, x, i }) => (
+          <g data-lines={l.key} class="pop" style={`--i: ${i}`}>
+            <circle cx={x} cy="28" r={i === 0 ? 28 : 20} fill={`var(--l-${l.key})`} />
+            <text x={x} y="28" dy="0.36em" text-anchor="middle" font-size={i === 0 ? 24 : 18} font-weight="800" fill="var(--bullet-fg)" class="font-sign">{l.code}</text>
+          </g>
+        ))}
+        <rect class="settle" x="116" y="164" width="128" height="56" rx="28" fill="var(--bg)" stroke="var(--fg)" stroke-width="6" />
+      </svg>
+
+      <div>
+        <h1 id="hero-title" class="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-[0.95] tracking-[-0.035em] text-balance">
+          Engineering leader who still builds.
+        </h1>
+        <p class="mt-6 text-lg sm:text-xl leading-relaxed text-muted max-w-[56ch] font-sans">
+          I lead engineering teams by caring about the person on the other side and, at the same time, about the project,
+          the team's performance and the delivery. Around that, I shape product with the business and stay hands-on with
+          architecture and AI.
+        </p>
+        <p class="mt-7 flex items-center gap-2 text-lg font-extrabold tabular-nums">
+          <RouteBullet line="leadership" code={lead.code} name={lead.short} size="sm" />
+          Up to 30+ developers managed
+        </p>
+        <ul class="mt-1.5 pl-8 flex flex-wrap text-sm font-semibold tabular-nums [&>li+li]:before:content-['/'] [&>li+li]:before:px-2.5 [&>li+li]:before:text-line">
+          <li>12+ years in software</li>
+          <li>Based in Uruguay</li>
+        </ul>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#contact" class:list={[plate, 'bg-fg text-bg hover:bg-fg/80']}>Get in touch</a>
+          <a href="/resume" class:list={[plate, 'border-2 border-fg hover:bg-fg hover:text-bg']}>Read my resume</a>
+          {FEATURE_SERVICES && <a href="/services" class:list={[plate, 'border-2 border-fg hover:bg-fg hover:text-bg']}>Work with me</a>}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* The lines, then the stops they serve */}
+  <section aria-labelledby="lines-title" class="border-t border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
+      <div class="font-sign">
+        <h2 id="lines-title" class="text-3xl sm:text-4xl font-extrabold tracking-[-0.025em]">What I bring to the table</h2>
+        <p class="mt-3 text-muted max-w-[62ch]">
+          Three lines, one interchange.{' '}
+          <span class="inline-flex items-center gap-1.5 align-middle font-bold text-fg">
+            <RouteBullet line="leadership" code={lead.code} name={lead.short} size="sm" />
+            People
+          </span>{' '}
+          is the line the other two run on. Select a line to see where it runs.
+        </p>
+      </div>
+
+      {/* People leads as a full-width line; Product and Architecture run beneath it. */}
+      <ol class="mt-12 grid md:grid-cols-2 gap-x-12 gap-y-12">
+        {lines.map((l) => {
+          const leads = l.key === 'leadership';
+          return (
+            <li class:list={[leads && 'md:col-span-2']} style={`--c: var(--l-${l.key}); --w: ${leads ? 12 : 8}px`}>
+              <div class="flex items-center gap-3 font-sign">
+                <RouteBullet line={l.key} code={l.code} name={l.short} interactive />
+                <h3
+                  data-lines={l.key}
+                  class:list={['leading-tight text-balance', leads ? 'text-2xl sm:text-3xl font-extrabold tracking-[-0.02em]' : 'text-xl font-bold tracking-[-0.01em]']}
+                >
+                  {l.title}
+                </h3>
+              </div>
+              <div
+                data-lines={l.key}
+                class:list={['pillar-line mt-5 pl-[3.25rem] pb-7 leading-relaxed', leads ? 'text-lg text-fg max-w-[64ch]' : 'text-muted max-w-[60ch]']}
+              >
+                {l.hasBody && <l.Content />}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+
+      <div class="mt-16 pt-16 border-t border-line grid lg:grid-cols-[minmax(0,7fr)_minmax(0,4fr)] gap-x-16 gap-y-14 items-start">
+        <div>
+          <h3 class="font-sign text-2xl font-extrabold tracking-[-0.02em]">Stops along the way</h3>
+          {/* The People line keeps running: every featured stop sits on it, wearing the lines it served. */}
+          <ol class="stops mt-6" style="--c: var(--l-leadership); --w: 8px">
+            {featuredStops.map((s, i) => (
+              <>
+              {(i === 0 || s.kind !== featuredStops[i - 1].kind) && (
+                <li class="pl-[3.5rem] pt-3 pb-1 font-sign text-sm font-bold text-muted" aria-hidden="true">{s.kind === 'role' ? 'Roles' : 'Talks'}</li>
+              )}
+              <li class="stop" data-lines={s.lines.join(' ')}>
+                <details class="group" name="stop">
+                  <summary class="grid grid-cols-[2.75rem_1fr_auto_1.25rem] items-start gap-x-3 py-3 min-h-11 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    <span class="stop-ring relative z-10 justify-self-center mt-0.5 size-[1.375rem] rounded-full border-[4px] border-fg bg-bg"></span>
+                    <span>
+                      <span class="block font-sign font-bold text-lg leading-snug group-hover:underline decoration-2 underline-offset-4">{s.name}</span>
+                      <span class="block mt-0.5 text-sm text-muted tabular-nums">{s.meta}</span>
+                    </span>
+                    <span class="flex gap-1 pt-0.5" role="img" aria-label={`Lines: ${linesOf(s).map((l) => l.short).join(', ')}`}>
+                      {linesOf(s).map((l) => <RouteBullet line={l.key} code={l.code} name={l.short} size="sm" />)}
+                    </span>
+                    <svg class="mt-1 size-5 text-muted transition-transform duration-300 group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M5 8l5 5 5-5" />
+                    </svg>
+                  </summary>
+                  {s.hasBody && (
+                    <div class="stop-detail pl-[3.5rem] pb-4 leading-relaxed text-muted max-w-[64ch] [&_a]:text-fg [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mt-1.5">
+                      <s.Content />
+                    </div>
+                  )}
+                </details>
+              </li>
+              </>
+            ))}
+          </ol>
+        </div>
+
+        <aside class="grid md:grid-cols-2 lg:grid-cols-1 gap-x-12 gap-y-12" aria-label="Other roles and talks">
+          {others.map((group) => (
+            <div>
+              <h3 class="font-sign text-lg font-bold">{group.title}</h3>
+              <ul class="mt-3 border-t border-line">
+                {group.stops.map((s) => (
+                  <li data-lines={s.lines.join(' ')} class="border-b border-line">
+                    <details class="group">
+                      <summary class="flex items-start gap-3 min-h-12 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                        <span class="flex-1">
+                          <span class="block font-sign font-semibold leading-snug group-hover:underline decoration-2 underline-offset-4">{s.name}</span>
+                          {s.meta !== 'Talk' && <span class="block mt-0.5 text-sm text-muted tabular-nums">{s.meta}</span>}
+                        </span>
+                        <span class="flex gap-1 pt-0.5" role="img" aria-label={`Lines: ${linesOf(s).map((l) => l.short).join(', ')}`}>
+                          {linesOf(s).map((l) => <RouteBullet line={l.key} code={l.code} name={l.short} size="sm" />)}
+                        </span>
+                        <svg class="mt-0.5 size-5 shrink-0 text-muted transition-transform duration-300 group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path d="M5 8l5 5 5-5" />
+                        </svg>
+                      </summary>
+                      {s.hasBody && (
+                        <div class="pb-4 text-sm leading-relaxed text-muted max-w-[62ch] [&_a]:text-fg [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-5">
+                          <s.Content />
+                        </div>
+                      )}
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <LetsTalk />
+</Base>
+

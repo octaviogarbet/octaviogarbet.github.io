@@ -1,0 +1,68 @@
+---
+import { Picture } from 'astro:assets';
+import { FEATURE_SERVICES } from 'astro:env/server';
+import { SITE, SOCIAL } from '../site';
+import portrait from '../assets/octavio.webp';
+import { PLATE as plate } from '../lib/ui';
+
+// The closing station every page ends on: portrait, email with copy, LinkedIn, location.
+interface Props {
+  /** Pages that already open with the portrait (about) leave it out here. */
+  portrait?: boolean;
+}
+const { portrait: showPortrait = true } = Astro.props;
+const linkedin = SOCIAL.find((s) => s.label === 'LinkedIn');
+---
+
+<section id="contact" aria-labelledby="contact-title" class="no-print bg-sign text-sign-fg [&_:focus-visible]:outline-sign-fg">
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 pt-2">
+    <div class="h-px bg-sign-fg/70"></div>
+    <div class:list={['py-16 sm:py-28 grid items-center gap-10 md:gap-14', showPortrait && 'md:grid-cols-[minmax(0,4fr)_minmax(0,7fr)]']}>
+      {showPortrait && (
+      <Picture
+        src={portrait}
+        formats={['avif', 'webp']}
+        widths={[360, 640, 960]}
+        sizes="(min-width: 1152px) 380px, (min-width: 768px) 33vw, 90vw"
+        alt={`Portrait of ${SITE.name}`}
+        loading="lazy"
+        class="w-full max-w-sm aspect-square object-cover rounded-[4px]"
+      />
+      )}
+      <div class="font-sign">
+        <h2 id="contact-title" class="text-[clamp(2.5rem,6vw,4.5rem)] font-extrabold leading-none tracking-[-0.035em]">Let's talk.</h2>
+        <p class="mt-5 text-lg leading-relaxed text-sign-fg/80 max-w-[48ch] font-sans">
+          Building a team, growing the people in it, shaping a product, or automating work that eats your time? I'm always glad to hear about it.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <a href={`mailto:${SITE.email}`} class="text-xl sm:text-2xl font-bold underline decoration-2 underline-offset-[6px] break-all hover:decoration-4">{SITE.email}</a>
+          <button type="button" id="copy-email" data-email={SITE.email} class:list={[plate, 'min-w-24 border-2 border-sign-fg hover:bg-sign-fg hover:text-sign']}>Copy</button>
+          <span id="copy-status" class="sr-only" aria-live="polite"></span>
+        </div>
+        <ul class="mt-6 flex flex-wrap gap-3">
+          {linkedin && <li><a href={linkedin.href} target="_blank" rel="noopener noreferrer" class:list={[plate, 'bg-sign-fg text-sign hover:bg-sign-fg/85']}>LinkedIn</a></li>}
+          {FEATURE_SERVICES && (
+            <li><a href="/services" class:list={[plate, 'border-2 border-sign-fg hover:bg-sign-fg hover:text-sign']}>See how I can help</a></li>
+          )}
+        </ul>
+        <p class="mt-8 text-sm text-sign-fg/70">Based in Uruguay, UTC−3</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const copy = document.getElementById('copy-email') as HTMLButtonElement | null;
+  const copyStatus = document.getElementById('copy-status');
+  copy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(copy.dataset.email!);
+      copy.textContent = 'Copied';
+      if (copyStatus) copyStatus.textContent = 'Email address copied';
+    } catch {
+      copy.textContent = 'Press Ctrl+C';
+      window.getSelection()?.selectAllChildren(copy.previousElementSibling!);
+    }
+    setTimeout(() => (copy.textContent = 'Copy'), 2000);
+  });
+</script>

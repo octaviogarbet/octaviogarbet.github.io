@@ -1,0 +1,30 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Empty from '../../components/Empty.astro';
+import { getPublished, formatDate } from '../../lib/content';
+
+const posts = await getPublished('blog');
+---
+
+<Base title="Blog" description="Writing about engineering management, leadership and web development.">
+  <PageHeader eyebrow="Blog" title="Writing" lead="Notes on engineering management, leadership and the web." />
+  {posts.length === 0 ? (
+    <Empty>First posts coming soon.</Empty>
+  ) : (
+    <ul class="space-y-10">
+      {posts.map((post) => (
+        <li>
+          <article>
+            <time datetime={post.data.date.toISOString()} class="text-sm text-muted">{formatDate(post.data.date)}</time>
+            {post.data.draft && <span class="ml-2 text-xs uppercase tracking-wider text-accent">Draft</span>}
+            <h2 class="mt-1 font-serif text-2xl font-medium tracking-tight">
+              <a href={`/blog/${post.id}`} class="hover:text-accent transition-colors">{post.data.title}</a>
+            </h2>
+            <p class="mt-2 text-muted leading-relaxed">{post.data.description}</p>
+          </article>
+        </li>
+      ))}
+    </ul>
+  )}
+</Base>
